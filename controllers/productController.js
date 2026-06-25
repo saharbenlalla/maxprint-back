@@ -1,32 +1,37 @@
 const Product = require("../models/Product");
 
-// Create a product
+// ================= CREATE PRODUCT =================
 exports.createProduct = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
 
-    // récupérer les images uploadées
-    const images = req.files ? req.files.map(file => file.filename) : [];
+    const images = req.files
+      ? req.files.map(file => file.filename)
+      : [];
 
     const product = await Product.create({
-      ...req.body,
+      name: req.body.name,
+      description: req.body.description,
+      price: Number(req.body.price),
       images
     });
 
     res.status(201).json(product);
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({
+      message: err.message,
+      stack: err.stack
+    });
   }
 };
 
-
-
-// Get all products
+// ================= GET ALL PRODUCTS =================
 exports.getProducts = async (req, res) => {
   try {
-
-    const products = await Product.find().populate("category");
-
+    const products = await Product.find();
     res.json(products);
 
   } catch (err) {
@@ -34,18 +39,14 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-
-
-// Get single product
+// ================= GET PRODUCT BY ID =================
 exports.getProductById = async (req, res) => {
   try {
+    const product = await Product.findById(req.params.id);
 
-    const product = await Product
-      .findById(req.params.id)
-      .populate("category");
-
-    if (!product)
+    if (!product) {
       return res.status(404).json({ message: "Produit non trouvé" });
+    }
 
     res.json(product);
 
@@ -54,15 +55,15 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-
-
-// Update product
+// ================= UPDATE PRODUCT =================
 exports.updateProduct = async (req, res) => {
   try {
+    let updateData = {
+      name: req.body.name,
+      description: req.body.description,
+      price: Number(req.body.price)
+    };
 
-    let updateData = { ...req.body };
-
-    // si nouvelles images
     if (req.files && req.files.length > 0) {
       updateData.images = req.files.map(file => file.filename);
     }
@@ -70,11 +71,12 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
-    if (!product)
+    if (!product) {
       return res.status(404).json({ message: "Produit non trouvé" });
+    }
 
     res.json(product);
 
@@ -83,16 +85,14 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-
-
-// Delete product
+// ================= DELETE PRODUCT =================
 exports.deleteProduct = async (req, res) => {
   try {
-
     const product = await Product.findByIdAndDelete(req.params.id);
 
-    if (!product)
+    if (!product) {
       return res.status(404).json({ message: "Produit non trouvé" });
+    }
 
     res.json({ message: "Produit supprimé" });
 

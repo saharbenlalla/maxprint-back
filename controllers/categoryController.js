@@ -1,16 +1,11 @@
 const Category = require("../models/Category");
 
-
 // CREATE CATEGORY
 exports.createCategory = async (req, res) => {
   try {
+    const { name } = req.body;
 
-    const { name, parent } = req.body;
-
-    const category = new Category({
-      name,
-      parent: parent || null
-    });
+    const category = new Category({ name });
 
     await category.save();
 
@@ -24,14 +19,10 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-
 // GET ALL CATEGORIES
 exports.getCategories = async (req, res) => {
   try {
-
-    const categories = await Category.find()
-      .populate("parent", "name");
-
+    const categories = await Category.find();
     res.json(categories);
 
   } catch (error) {
@@ -43,9 +34,7 @@ exports.getCategories = async (req, res) => {
 // GET CATEGORY BY ID
 exports.getCategoryById = async (req, res) => {
   try {
-
-    const category = await Category.findById(req.params.id)
-      .populate("parent", "name");
+    const category = await Category.findById(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
@@ -62,15 +51,11 @@ exports.getCategoryById = async (req, res) => {
 // UPDATE CATEGORY
 exports.updateCategory = async (req, res) => {
   try {
-
-    const { name, parent } = req.body;
+    const { name } = req.body;
 
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      {
-        name,
-        parent: parent || null
-      },
+      { name },
       { new: true }
     );
 
@@ -87,12 +72,9 @@ exports.updateCategory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 // DELETE CATEGORY
 exports.deleteCategory = async (req, res) => {
   try {
-
     const category = await Category.findByIdAndDelete(req.params.id);
 
     if (!category) {
@@ -102,36 +84,6 @@ exports.deleteCategory = async (req, res) => {
     res.json({
       message: "Category deleted successfully"
     });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-// GET PARENT CATEGORIES
-exports.getParentCategories = async (req, res) => {
-  try {
-
-    const parents = await Category.find({ parent: null });
-
-    res.json(parents);
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-// GET SUB CATEGORIES
-exports.getSubCategories = async (req, res) => {
-  try {
-
-    const subCategories = await Category.find({
-      parent: req.params.parentId
-    });
-
-    res.json(subCategories);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
